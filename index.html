@@ -243,7 +243,7 @@
     <script>
         let currentUserName = ""; let currentUserAge = "";
         
-        // 🔑 Supabase Live Database Connections (මෙහි S අකුර නිවැරදි කර ඇත)
+        // 🔑 Supabase Live Database Connections
         const SUPABASE_URL = "https://mblplawxcwgxbrxgvrho.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_h9GVHgoIpxZQs7UbD8CtfQ_UCIZG6V-Mst_v17wM-f8nO4fWkFALaG0yU-e85W27bY72v4_M9n7w72"; 
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -263,7 +263,7 @@
         function saveUser() {
             let nameInput = document.getElementById('username-input').value.trim();
             let ageInput = document.getElementById('userage-input').value.trim();
-            if(nameInput === "" || ageInput === "") { alert("කרוණාකර නම සහ වයස නිවැරදිව ඇතුළත් කරන්න!"); return; }
+            if(nameInput === "" || ageInput === "") { alert("කරුණාකර නම සහ වයස නිවැරදිව ඇතුළත් කරන්න!"); return; }
             currentUserName = nameInput; currentUserAge = ageInput;
             localStorage.setItem('gym_user_name', currentUserName); localStorage.setItem('gym_user_age', currentUserAge);
             document.getElementById('name-overlay').style.display = 'none';
