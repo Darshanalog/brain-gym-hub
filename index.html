@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brain Gym & Relax Hub - Ultimate Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-glow: #0a0f1d;
@@ -140,7 +141,6 @@
 </head>
 <body>
 
-    <!-- USER IDENTIFICATION OVERLAY -->
     <div id="name-overlay" class="overlay">
         <div class="login-box">
             <h3>සාදරයෙන් පිළිගන්නවා! 🚀</h3>
@@ -156,7 +156,6 @@
     
     <div id="welcome-banner" class="user-welcome"></div>
 
-    <!-- Navigation Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('memory')">Memory Grid</button>
         <button class="tab-btn" onclick="switchTab('math')">Speed Math</button>
@@ -167,7 +166,6 @@
         <button class="tab-btn" onclick="switchTab('commentsTab')">💬 Chat/Comments</button>
     </div>
 
-    <!-- ACTIVITY 1: MEMORY GRID -->
     <div id="memory" class="game-container active">
         <h3>Memory Grid</h3>
         <p>නිල් පාටින් දිදුලන රටාව මතක තබාගෙන නිවැරදිව ක්ලික් කරන්න.</p>
@@ -179,7 +177,6 @@
         <div class="grid" id="grid-board"></div>
     </div>
 
-    <!-- ACTIVITY 2: SPEED MATH -->
     <div id="math" class="game-container">
         <h3>Speed Math</h3>
         <p>තත්පර 15ක් ඇතුළත වේගයෙන් නිවැරදි පිළිතුරු ලබා දෙන්න.</p>
@@ -195,7 +192,6 @@
         </div>
     </div>
 
-    <!-- ACTIVITY 3: STROOP FOCUS -->
     <div id="stroop" class="game-container">
         <h3>Stroop Focus</h3>
         <p>වචනයේ තේරුම දෙස නොබලා, එය ලියා ඇති <b>වර්ණය (Color)</b> තෝරන්න.</p>
@@ -210,7 +206,6 @@
         </div>
     </div>
 
-    <!-- NEW TAB: BREATHING EXERCISES -->
     <div id="relax" class="game-container">
         <h3>🧘 Mind Relax Manger</h3>
         <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 15px;">ශ්වසන අභ්‍යාස මඟින් මොළයේ පීඩනය අවම කරගන්න</p>
@@ -223,21 +218,18 @@
         <button class="start-btn" id="breath-btn" onclick="toggleBreathing()">Start Exercise</button>
     </div>
 
-    <!-- TAB 4: TOP 5 DASHBOARD -->
     <div id="top5" class="game-container">
         <h3>🏆 Top 5 Masters</h3>
         <p style="color: #94a3b8; font-size: 0.9rem;">ලෝකයේ ඉහළින්ම ඉන්න සුපිරි වැඩ්ඩන් 5 දෙනා</p>
         <div class="list-area" id="top5-render-area"></div>
     </div>
 
-    <!-- TAB 5: ALL PLAYERS TAB -->
     <div id="allplayers" class="game-container">
         <h3>👥 All Registered Players</h3>
         <p style="color: #94a3b8; font-size: 0.9rem;">ක්‍රීඩා කරන සියලුම දෙනාගේ ලැයිස්තුව</p>
         <div class="list-area" id="all-render-area"></div>
     </div>
 
-    <!-- NEW TAB: LIVE COMMENTS TAB -->
     <div id="commentsTab" class="game-container">
         <h3>💬 Community Comments</h3>
         <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 15px;">ඔබේ අදහස් මෙතන සටහන් කරන්න (අනෙක් අයටද පෙනේ)</p>
@@ -250,16 +242,11 @@
 
     <script>
         let currentUserName = ""; let currentUserAge = "";
-        let defaultLeaderboard = [
-            { name: "Sahan_Dev", age: 24, score: 52 },
-            { name: "Kasun99", age: 28, score: 38 },
-            { name: "Amali_Silva", age: 21, score: 29 },
-            { name: "Nuwan_K", age: 32, score: 22 }
-        ];
-        let defaultComments = [
-            { name: "Sahan_Dev", age: 24, text: "පට්ට සයිට් එක! Speed Math එකෙන් මගේ Score එක කඩන්න කාටද පුළුවන්? 🔥" },
-            { name: "Amali_Silva", age: 21, text: "Memory Grid එක මරු. මොළයට හොඳ ව්‍යායාමයක් ලැබෙනවා." }
-        ];
+        
+        // 🔑 Supabase Live Database Connections
+        const SUPABASE_URL = "https://mblplawxcwgxbrxgvrho.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_h9GVHgoIpxZQs7UbD8CtfQ_UCIZG6V-Mst_v17wM-f8nO4fWkFALaG0yU-e85W27bY72v4_M9n7w72"; 
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         window.onload = function() {
             let savedName = localStorage.getItem('gym_user_name');
@@ -268,9 +255,8 @@
                 currentUserName = savedName; currentUserAge = savedAge;
                 document.getElementById('name-overlay').style.display = 'none';
                 showWelcomeBanner();
+                updateServerScore(); // Sync local scores with cloud
             }
-            if(!localStorage.getItem('global_leaderboard')) localStorage.setItem('global_leaderboard', JSON.stringify(defaultLeaderboard));
-            if(!localStorage.getItem('global_comments')) localStorage.setItem('global_comments', JSON.stringify(defaultComments));
             loadHighScores(); createGrid();
         }
 
@@ -295,21 +281,57 @@
             document.getElementById('stroop-high').innerText = `High Score: ${localStorage.getItem('stroop_high') || 0}`;
         }
 
-        function updateServerScore() {
+        // 📤 Cloud Database එකට Live Scores යැවීම
+        async function updateServerScore() {
             if(!currentUserName) return;
             let totalScore = (parseInt(localStorage.getItem('mem_high')) || 0) + (parseInt(localStorage.getItem('math_high')) || 0) + (parseInt(localStorage.getItem('stroop_high')) || 0);
-            let db = JSON.parse(localStorage.getItem('global_leaderboard')) || [];
-            let userExist = db.find(u => u.name === currentUserName);
-            if(userExist) { if(totalScore > userExist.score) userExist.score = totalScore; } 
-            else { db.push({ name: currentUserName, age: parseInt(currentUserAge), score: totalScore }); }
-            db.sort((a, b) => b.score - a.score); localStorage.setItem('global_leaderboard', JSON.stringify(db));
+            
+            // පළමුව මේ player දැනටමත් Cloud Leaderboard එකේ ඉන්නවද බලමු
+            const { data: existingUsers, error: fetchError } = await supabase
+                .from('leaderboard')
+                .select('*')
+                .eq('name', currentUserName);
+
+            if(fetchError) return console.error(fetchError);
+
+            if(existingUsers && existingUsers.length > 0) {
+                // ඉන්නවා නම්, එයාගේ අලුත් ලකුණු වැඩි නම් විතරක් Update කරමු
+                if(totalScore > existingUsers[0].score) {
+                    await supabase
+                        .from('leaderboard')
+                        .update({ score: totalScore, age: parseInt(currentUserAge) })
+                        .eq('name', currentUserName);
+                }
+            } else {
+                // අලුත් කෙනෙක් නම් ඩේටාබේස් එකට අලුතින් ඇතුළත් කරමු
+                await supabase
+                    .from('leaderboard')
+                    .insert([{ name: currentUserName, age: parseInt(currentUserAge), score: totalScore }]);
+            }
         }
 
-        function renderLeaderboards() {
-            updateServerScore();
+        // 📥 Cloud Database එකෙන් සියලුම දෙනාගේ Scores ලයිව් කියවීම
+        async function renderLeaderboards() {
+            await updateServerScore();
             const top5Area = document.getElementById('top5-render-area'); const allArea = document.getElementById('all-render-area');
+            top5Area.innerHTML = "<p style='color:#64748b; padding:10px;'>ලෝඩ් වෙමින් පවතී...</p>"; 
+            allArea.innerHTML = "<p style='color:#64748b; padding:10px;'>ලෝඩ් වෙමින් පවතී...</p>";
+            
+            const { data: db, error } = await supabase
+                .from('leaderboard')
+                .select('*')
+                .order('score', { ascending: false });
+
+            if(error) { console.error(error); return; }
+
             top5Area.innerHTML = ""; allArea.innerHTML = "";
-            let db = JSON.parse(localStorage.getItem('global_leaderboard')) || [];
+            
+            if(db.length === 0) {
+                top5Area.innerHTML = "<p class='text-center text-sm text-slate-500 py-4'>තවම ලකුණු නැත!</p>";
+                allArea.innerHTML = "<p class='text-center text-sm text-slate-500 py-4'>තවම ක්‍රීඩකයින් නැත!</p>";
+                return;
+            }
+
             db.forEach((player, index) => {
                 let isMeStyle = player.name === currentUserName ? "border: 1px solid var(--neon-purple); background: rgba(168,85,247,0.15);" : "";
                 let itemHTML = `
@@ -323,12 +345,26 @@
         }
 
         // ==========================================
-        // NEW FEATURE: COMMENTS SYSTEM
+        // FEATURE: LIVE COMMENTS SYSTEM (CLOUD)
         // ==========================================
-        function renderComments() {
-            const area = document.getElementById('comments-render-area'); area.innerHTML = "";
-            let comments = JSON.parse(localStorage.getItem('global_comments')) || [];
-            comments.slice().reverse().forEach(c => {
+        async function renderComments() {
+            const area = document.getElementById('comments-render-area'); 
+            area.innerHTML = "<p style='color:#64748b; padding:10px;'>ප්‍රතිචාර ලෝඩ් වෙමින් පවතී...</p>";
+            
+            const { data: comments, error } = await supabase
+                .from('comments')
+                .select('*')
+                .order('id', { ascending: false });
+
+            if(error) { console.error(error); return; }
+
+            area.innerHTML = "";
+            if(comments.length === 0) {
+                area.innerHTML = "<p class='text-center text-sm text-slate-500 py-4'>තවම අදහස් කිසිවක් නැත.</p>";
+                return;
+            }
+
+            comments.forEach(c => {
                 area.innerHTML += `
                     <div class="comment-bubble">
                         <div style="font-size:0.85rem; color:var(--neon-blue); font-weight:bold; margin-bottom:4px;">${c.name} <span style="color:#64748b; font-weight:normal; font-size:0.75rem;">(${c.age} Yrs)</span></div>
@@ -336,19 +372,29 @@
                     </div>`;
             });
         }
-        function addComment() {
+
+        async function addComment() {
             const input = document.getElementById('new-comment-input'); let txt = input.value.trim();
             if(txt === "") return;
-            let comments = JSON.parse(localStorage.getItem('global_comments')) || [];
-            comments.push({ name: currentUserName, age: currentUserAge, text: txt });
-            localStorage.setItem('global_comments', JSON.stringify(comments));
-            input.value = ""; renderComments();
+            
+            // Cloud Database එකට කමෙන්ට් එක යැවීම
+            const { error } = await supabase
+                .from('comments')
+                .insert([{ name: currentUserName, age: parseInt(currentUserAge), text: txt }]);
+
+            if(error) {
+                alert("කමෙන්ට් එක යැවීමට නොහැකි වුණා. උත්සාහ කරන්න.");
+                console.error(error);
+            } else {
+                input.value = ""; 
+                renderComments(); // Refresh instantly
+            }
         }
 
         // ==========================================
-        // NEW FEATURE: VISUAL BREATHING EXERCISE
+        // FEATURE: VISUAL BREATHING EXERCISE
         // ==========================================
-        let breathInterval; let breathStep = 0; let isBreathingRunning = false;
+        let breathInterval; let isBreathingRunning = false;
         function resetBreathing() { clearInterval(breathInterval); isBreathingRunning = false; document.getElementById('breath-btn').innerText = "Start Exercise"; const el = document.getElementById('breath-node'); el.innerText = "Ready"; el.style.transform = "scale(1)"; }
         function toggleBreathing() {
             if(isBreathingRunning) { resetBreathing(); return; }
