@@ -243,9 +243,9 @@
     <script>
         let currentUserName = ""; let currentUserAge = "";
         
-        // 🔑 Supabase Live Database Connections (FIXED WITH YOUR GENUINE KEYS)
+        // 🔑 Supabase Live Database Connections
         const SUPABASE_URL = "https://mblplawxcwgxbrxgvrho.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibHBsYXd4Y3dneGJyeGd2cmhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1OTQ5MDYsImV4cCI6MjA1OTE1MDkwNn0.VwD_z6fNcoz7B7F-mSg-N9zIuL85Gf8R3g8f3-uA8fU"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_h9GVHgoIpxZQs7UbD8CtfQ_UCIZG6V-Mst_v17wM-f8nO4fWkFALaG0yU-e85W27bY72v4_M9n7w72"; 
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         window.onload = function() {
@@ -419,16 +419,10 @@
             if (newScore > currentHigh) { localStorage.setItem(key, newScore); document.getElementById(elementId).innerText = `High Score: ${newScore}`; updateServerScore(); }
         }
 
-        // Fix: Added event parameter properly to prevent errors in some browsers
         function switchTab(tabId) {
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active'); 
-            
-            // Find the button that triggered the click and activate it
-            const clickedBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
-            if(clickedBtn) clickedBtn.classList.add('active');
-
+            document.getElementById(tabId).classList.add('active'); event.target.classList.add('active');
             resetBreathing();
             if(tabId === 'top5' || tabId === 'allplayers') renderLeaderboards();
             if(tabId === 'commentsTab') renderComments();
@@ -476,7 +470,6 @@
             mathScore = 0; timeLeft = 15; document.getElementById('math-score').innerText = `ලකුණු: ${mathScore}`;
             document.getElementById('math-start').style.display = 'none'; document.getElementById('math-play-area').style.display = 'block'; nextMathQuestion();
             document.getElementById('math-timer-fill').style.width = '100%';
-            clearInterval(mathTimer); // Clear existing timers before starting new ones
             mathTimer = setInterval(() => {
                 timeLeft--; let percent = (timeLeft / 15) * 100; document.getElementById('math-timer-fill').style.width = `${percent}%`;
                 if (timeLeft <= 0) { clearInterval(mathTimer); updateHighScore('math_high', mathScore, 'math-high'); alert(`කාලය අවසන්! ඔබේ මුළු ලකුණු: ${mathScore}`); document.getElementById('math-start').style.display = 'inline-block'; document.getElementById('math-play-area').style.display = 'none'; }
