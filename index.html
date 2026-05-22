@@ -243,11 +243,12 @@
     <script>
         let currentUserName = ""; let currentUserAge = "";
         
-        // 🔑 Supabase Live Database Connections (FIXED WITH YOUR GENUINE KEYS)
-       const SUPABASE_URL = "https://mblplawxcwgxbrxgvrho.supabase.co";
-// පහත තියෙන eyJhbGci... කෑල්ල වෙනුවට ඔයා කොපි කරගත්තු දිගම දිග anon key එක පේස්ට් කරන්න
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-actual-very-long-anon-key-here..."; 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // 🔑 Supabase Live Database Connections (ERROR FIXED HERE!)
+        const SUPABASE_URL = "https://mblplawxcwgxbrxgvrho.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_h9GVHgoIpxZQs7UbD8CtfQ_UCIZG6V-Mst_v17wM-f8nO4fWkFALaG0yU-e85W27bY72v4_M9n7w72"; 
+        
+        // ජාවාස්ක්‍රිප්ට් නමේ අවුල විසඳීමට 'supabaseClient' ලෙස වෙනස් කර ඇත.
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         window.onload = function() {
             let savedName = localStorage.getItem('gym_user_name');
@@ -256,7 +257,7 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 currentUserName = savedName; currentUserAge = savedAge;
                 document.getElementById('name-overlay').style.display = 'none';
                 showWelcomeBanner();
-                updateServerScore(); // Sync local scores with cloud
+                updateServerScore(); 
             }
             loadHighScores(); createGrid();
         }
@@ -282,12 +283,11 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             document.getElementById('stroop-high').innerText = `High Score: ${localStorage.getItem('stroop_high') || 0}`;
         }
 
-        // 📤 Cloud Database එකට Live Scores යැවීම
         async function updateServerScore() {
             if(!currentUserName) return;
             let totalScore = (parseInt(localStorage.getItem('mem_high')) || 0) + (parseInt(localStorage.getItem('math_high')) || 0) + (parseInt(localStorage.getItem('stroop_high')) || 0);
             
-            const { data: existingUsers, error: fetchError } = await supabase
+            const { data: existingUsers, error: fetchError } = await supabaseClient
                 .from('leaderboard')
                 .select('*')
                 .eq('name', currentUserName);
@@ -296,26 +296,25 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
             if(existingUsers && existingUsers.length > 0) {
                 if(totalScore > existingUsers[0].score) {
-                    await supabase
+                    await supabaseClient
                         .from('leaderboard')
                         .update({ score: totalScore, age: parseInt(currentUserAge) })
                         .eq('name', currentUserName);
                 }
             } else {
-                await supabase
+                await supabaseClient
                     .from('leaderboard')
                     .insert([{ name: currentUserName, age: parseInt(currentUserAge), score: totalScore }]);
             }
         }
 
-        // 📥 Cloud Database එකෙන් සියලුම දෙනාගේ Scores ලයිව් කියවීම
         async function renderLeaderboards() {
             await updateServerScore();
             const top5Area = document.getElementById('top5-render-area'); const allArea = document.getElementById('all-render-area');
             top5Area.innerHTML = "<p style='color:#64748b; padding:10px;'>ලෝඩ් වෙමින් පවතී...</p>"; 
             allArea.innerHTML = "<p style='color:#64748b; padding:10px;'>ලෝඩ් වෙමින් පවතී...</p>";
             
-            const { data: db, error } = await supabase
+            const { data: db, error } = await supabaseClient
                 .from('leaderboard')
                 .select('*')
                 .order('score', { ascending: false });
@@ -342,14 +341,11 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             });
         }
 
-        // ==========================================
-        // FEATURE: LIVE COMMENTS SYSTEM (CLOUD)
-        // ==========================================
         async function renderComments() {
             const area = document.getElementById('comments-render-area'); 
             area.innerHTML = "<p style='color:#64748b; padding:10px;'>ප්‍රතිචාර ලෝඩ් වෙමින් පවතී...</p>";
             
-            const { data: comments, error } = await supabase
+            const { data: comments, error } = await supabaseClient
                 .from('comments')
                 .select('*')
                 .order('id', { ascending: false });
@@ -375,7 +371,7 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             const input = document.getElementById('new-comment-input'); let txt = input.value.trim();
             if(txt === "") return;
             
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('comments')
                 .insert([{ name: currentUserName, age: parseInt(currentUserAge), text: txt }]);
 
@@ -388,9 +384,6 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
         }
 
-        // ==========================================
-        // FEATURE: VISUAL BREATHING EXERCISE
-        // ==========================================
         let breathInterval; let isBreathingRunning = false;
         function resetBreathing() { clearInterval(breathInterval); isBreathingRunning = false; document.getElementById('breath-btn').innerText = "Start Exercise"; const el = document.getElementById('breath-node'); el.innerText = "Ready"; el.style.transform = "scale(1)"; }
         function toggleBreathing() {
@@ -420,13 +413,11 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             if (newScore > currentHigh) { localStorage.setItem(key, newScore); document.getElementById(elementId).innerText = `High Score: ${newScore}`; updateServerScore(); }
         }
 
-        // Fix: Added event parameter properly to prevent errors in some browsers
         function switchTab(tabId) {
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active'); 
             
-            // Find the button that triggered the click and activate it
             const clickedBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
             if(clickedBtn) clickedBtn.classList.add('active');
 
@@ -436,9 +427,6 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             loadHighScores();
         }
 
-        // ==========================================
-        // GAMES CORE LOGIC
-        // ==========================================
         let sequence = []; let playerSequence = []; let memLevel = 1;
         const gridBoard = document.getElementById('grid-board');
         function createGrid() {
@@ -477,7 +465,7 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             mathScore = 0; timeLeft = 15; document.getElementById('math-score').innerText = `ලකුණු: ${mathScore}`;
             document.getElementById('math-start').style.display = 'none'; document.getElementById('math-play-area').style.display = 'block'; nextMathQuestion();
             document.getElementById('math-timer-fill').style.width = '100%';
-            clearInterval(mathTimer); // Clear existing timers before starting new ones
+            clearInterval(mathTimer); 
             mathTimer = setInterval(() => {
                 timeLeft--; let percent = (timeLeft / 15) * 100; document.getElementById('math-timer-fill').style.width = `${percent}%`;
                 if (timeLeft <= 0) { clearInterval(mathTimer); updateHighScore('math_high', mathScore, 'math-high'); alert(`කාලය අවසන්! ඔබේ මුළු ලකුණු: ${mathScore}`); document.getElementById('math-start').style.display = 'inline-block'; document.getElementById('math-play-area').style.display = 'none'; }
