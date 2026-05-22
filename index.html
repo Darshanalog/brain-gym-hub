@@ -244,9 +244,10 @@
         let currentUserName = ""; let currentUserAge = "";
         
         // 🔑 Supabase Live Database Connections (FIXED WITH YOUR GENUINE KEYS)
-        const SUPABASE_URL = "https://mblplawxcwgxbrxgvrho.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibHBsYXd4Y3dneGJyeGd2cmhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1OTQ5MDYsImV4cCI6MjA1OTE1MDkwNn0.VwD_z6fNcoz7B7F-mSg-N9zIuL85Gf8R3g8f3-uA8fU"; 
-        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+       const SUPABASE_URL = "https://mblplawxcwgxbrxgvrho.supabase.co";
+// පහත තියෙන eyJhbGci... කෑල්ල වෙනුවට ඔයා කොපි කරගත්තු දිගම දිග anon key එක පේස්ට් කරන්න
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-actual-very-long-anon-key-here..."; 
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         window.onload = function() {
             let savedName = localStorage.getItem('gym_user_name');
